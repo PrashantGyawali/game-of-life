@@ -3,10 +3,25 @@
 #include "grid.hpp"
 
 class Simulation{
+    private:
+    int columns=20,rows=20;
+    Grid grid,nexGrid;
+    
+    int focusOffsetX=0,focusOffsetY=0;
+    int width,height;
+
+    int  overPopulationCondition=3;
+    int  underPopulationCondition=3;
+
+    void SetOverPopulationCondition  (int condition);
+    void SetUnderPopulationCondition (int condition);
+    void NextGeneration();
 
     public:
     Simulation(int rows, int columns, int cellSize=20);
     bool paused=false;
+    int count=0;
+    int ufps=10;
 
     ~Simulation(){
 
@@ -17,7 +32,7 @@ class Simulation{
     void Clear();
 
     // WIdth and height preferably constant and only cellSize changed
-    void Set(int width, int height, int cellSize);
+    void Set(int width, int height);
     void SetCellSize(int cellSize); 
 
 
@@ -26,6 +41,7 @@ class Simulation{
 
     // updating the simulation
     void Update();
+    void SetFPS(int fps);
     void Next();
     void SkipGenerations(int generations);
 
@@ -42,17 +58,4 @@ class Simulation{
 
 
 
-    private:
-    Grid grid,nexGrid;
-    
-    int focusOffsetX=0,focusOffsetY=0;
-    int width,height;
-    int columns,rows;
-
-    int  overPopulationCondition=3;
-    int  underPopulationCondition=3;
-
-    void SetOverPopulationCondition  (int condition);
-    void SetUnderPopulationCondition (int condition);
-    void NextGeneration();
 };

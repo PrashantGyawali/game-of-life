@@ -3,7 +3,6 @@
 #include<utility>
 #include<iostream>
 #include "raylib.h"
-
 void Simulation::Draw()
 {
     grid.UpdateFocus(focusOffsetX,focusOffsetY);
@@ -20,13 +19,19 @@ void Simulation::SetCell(int x, int y, int value)
 
 
 
-
-
-void Simulation::Set(int width, int height, int cellSize)
+void Simulation::Set(int width, int height)
 {
     this->width=width;
     this->height=height;
-    grid.Set(width, height);
+
+    int cellWidth=(width/columns);
+    int cellHeight=(height/rows);
+
+    int cellSize=std::min(cellWidth, cellHeight);
+    std::cout<<columns<<" hi "<<rows<<std::endl;
+
+    grid.Set(rows, columns);
+    
     SetCellSize(cellSize);
     grid.FillRandom();
 }
@@ -98,7 +103,10 @@ void Simulation::NextGeneration()
 
 
 
-
+void Simulation::SetFPS(int fps) {
+    ufps = fps;
+    count=0;
+}
 
 
 
@@ -109,9 +117,9 @@ void Simulation::Update()
 {
     int rows = grid.GetRows();
     int columns = grid.GetColumns();
-
-    if(CheckCollisionPointRec(GetMousePosition(), {0, 0,float(width), float(height)}))
-    {
+    
+        if(CheckCollisionPointRec(GetMousePosition(), {0, 0,float(width), float(height)}))
+        {
             if(IsMouseButtonReleased(MOUSE_LEFT_BUTTON))
             {
                 SetCellSize(grid.GetCellSize()+2*(grid.GetCellSize()/20+1));
@@ -119,66 +127,71 @@ void Simulation::Update()
             if(IsMouseButtonReleased(MOUSE_RIGHT_BUTTON))
             {
                 std::cout<<"CellSize: "<<grid.GetCellSize()<<" "<<grid.GetRows()*grid.GetCellSize()<<" "<<height<<std::endl;
-                if(grid.GetColumns()*grid.GetCellSize()>width && grid.GetRows()*grid.GetCellSize()>height)
+                if(grid.GetColumns()*grid.GetCellSize()>width || grid.GetRows()*grid.GetCellSize()>height)
                 {
                     SetCellSize(grid.GetCellSize()-2*(grid.GetCellSize()/20+1));
                 }
             }
-    }
+        }
 
-    if(IsKeyReleased(KEY_LEFT))
-    {
-        if(focusOffsetX>0)
+        if(IsKeyReleased(KEY_LEFT))
         {
-        focusOffsetX-=(grid.GetColumns()/10)* grid.GetCellSize();
+            if(focusOffsetX>0)
+            {
+            focusOffsetX-=(grid.GetColumns()/10)* grid.GetCellSize();
+            }
+            else{
+                focusOffsetX=0;
+            }
         }
-        else{
-            focusOffsetX=0;
-        }
-    }
-    if(IsKeyReleased(KEY_RIGHT))
-    {
-        if(focusOffsetX<(grid.GetColumns()*grid.GetCellSize()-1000))
+        if(IsKeyReleased(KEY_RIGHT))
         {
-        focusOffsetX+=(grid.GetColumns()/10)* grid.GetCellSize();
+            if(focusOffsetX<(grid.GetColumns()*grid.GetCellSize()-1000))
+            {
+            focusOffsetX+=(grid.GetColumns()/10)* grid.GetCellSize();
+            }
+            else{
+                focusOffsetX=(grid.GetColumns()*grid.GetCellSize()-1000);
+            }
         }
-        else{
-            focusOffsetX=(grid.GetColumns()*grid.GetCellSize()-1000);
-        }
-    }
-    if(IsKeyReleased(KEY_UP))
-    {
-        if(focusOffsetY>=0.1*grid.GetRows()*grid.GetCellSize())
+        if(IsKeyReleased(KEY_UP))
         {
-        focusOffsetY-=(grid.GetRows()/10)* grid.GetCellSize();
+            if(focusOffsetY>=0.1*grid.GetRows()*grid.GetCellSize())
+            {
+            focusOffsetY-=(grid.GetRows()/10)* grid.GetCellSize();
+            }
+            else{
+                focusOffsetY=0;
+            }
         }
-        else{
-            focusOffsetY=0;
-        }
-    }
-    if(IsKeyReleased(KEY_DOWN))
-    {
-        if(focusOffsetY+800<grid.GetRows()*grid.GetCellSize())
+        if(IsKeyReleased(KEY_DOWN))
         {
-        focusOffsetY+=(grid.GetRows()/10)* grid.GetCellSize();
+            if(focusOffsetY+800<grid.GetRows()*grid.GetCellSize())
+            {
+            focusOffsetY+=(grid.GetRows()/10)* grid.GetCellSize();
+            }
+            else{
+                focusOffsetY=grid.GetRows()*grid.GetCellSize()-800;
+            }
         }
-        else{
-            focusOffsetY=grid.GetRows()*grid.GetCellSize()-800;
+
+        if(IsKeyPressed(KEY_SPACE))
+        {
+            TogglePause();
         }
-    }
-
-    if(IsKeyPressed(KEY_SPACE))
-    {
-        TogglePause();
-    }
 
 
 
-    if(paused)
-    {
-        return;
-    }
-    NextGeneration();
+        if(paused)
+        {
+            return;
+        }
+        
+        count++;
+        if(count >= 60/ufps) {
+            NextGeneration();
+            count=0;
+        }       
 }
 
 
@@ -214,10 +227,6 @@ void Simulation::Next()
 // skipping generations
 void Simulation::SkipGenerations(int generations)
 {
-    if(!paused)
-    {
-        return;
-    }
     for(int i=0;i<generations;i++)
     {
         NextGeneration();
@@ -268,6 +277,10 @@ void Simulation::SetRules(int op, int up)
 
 Simulation::Simulation(int rows, int columns, int cellSize)
     {
+        this->rows=rows;
+        this->columns=columns;
+
+
         grid.Set(rows,columns);
         nexGrid.Set(rows,columns);
 
