@@ -19,6 +19,8 @@ void Simulation::SetCell(int x, int y, int value)
 
 
 
+
+
 void Simulation::Set(int width, int height)
 {
     this->width=width;
@@ -28,7 +30,7 @@ void Simulation::Set(int width, int height)
     int cellHeight=(height/rows);
 
     int cellSize=std::min(cellWidth, cellHeight);
-    std::cout<<columns<<" hi "<<rows<<std::endl;
+    //std::cout<<columns<<" hi "<<rows<<std::endl;
 
     grid.Set(rows, columns);
     
@@ -98,6 +100,7 @@ void Simulation::NextGeneration()
             }
         }
     }
+    currentGeneration++;
     grid=nexGrid;
 }
 
@@ -109,30 +112,35 @@ void Simulation::SetFPS(int fps) {
 }
 
 
+void Simulation::zoomIn()
+{
+    //std::cout<<"CellSize: "<<grid.GetCellSize()<<" "<<grid.GetRows()*grid.GetCellSize()<<" "<<height<<std::endl;
+
+    SetCellSize(grid.GetCellSize()+2*(grid.GetCellSize()/20+1));
+}
+
+void Simulation::zoomOut()
+{
+    //std::cout<<"CellSize: "<<grid.GetCellSize()<<" "<<grid.GetRows()*grid.GetCellSize()<<" "<<height<<std::endl;
+    if(grid.GetColumns()*grid.GetCellSize()>width || grid.GetRows()*grid.GetCellSize()>height)
+     {
+        SetCellSize(grid.GetCellSize()-2*(grid.GetCellSize()/20+1));
+    }
+}
+
+void Simulation::ToggleCell(int row, int column, int val)
+{
+    if(paused)
+    {
+        grid.ToggleCell(row, column);
+    }
+}
 
 
-
-
-void Simulation::Update()
+void Simulation::Update(Sidepanel &sPanel)
 {
     int rows = grid.GetRows();
     int columns = grid.GetColumns();
-    
-        if(CheckCollisionPointRec(GetMousePosition(), {0, 0,float(width), float(height)}))
-        {
-            if(IsMouseButtonReleased(MOUSE_LEFT_BUTTON))
-            {
-                SetCellSize(grid.GetCellSize()+2*(grid.GetCellSize()/20+1));
-            }
-            if(IsMouseButtonReleased(MOUSE_RIGHT_BUTTON))
-            {
-                std::cout<<"CellSize: "<<grid.GetCellSize()<<" "<<grid.GetRows()*grid.GetCellSize()<<" "<<height<<std::endl;
-                if(grid.GetColumns()*grid.GetCellSize()>width || grid.GetRows()*grid.GetCellSize()>height)
-                {
-                    SetCellSize(grid.GetCellSize()-2*(grid.GetCellSize()/20+1));
-                }
-            }
-        }
 
         if(IsKeyReleased(KEY_LEFT))
         {
@@ -181,6 +189,40 @@ void Simulation::Update()
         }
 
 
+        if(IsMouseButtonPressed(MOUSE_LEFT_BUTTON))
+        {
+            Vector2 mousePosition = GetMousePosition();
+            int row = (mousePosition.y + focusOffsetY) / grid.GetCellSize();
+            int column = (mousePosition.x + focusOffsetX) / grid.GetCellSize();
+
+            if(row>=rows || column>=columns)
+            {
+                return;
+            }
+
+            int size = sPanel.pGrid[sPanel.currentPattern].first.size();
+
+
+            if(paused)
+            {
+                for (int i = 0; i < size; i++) {
+                    for (int j = 0; j < sPanel.pGrid[sPanel.currentPattern].first[i].size(); j++) {
+                        if(sPanel.pGrid[sPanel.currentPattern].first[i][j])
+                        {
+                            if(sPanel.togglePattern)
+                            {
+                                ToggleCell(row-(size/2)+i, column-(size/2)+j, sPanel.pGrid[sPanel.currentPattern].first[i][j]);
+                            }
+                            else{
+                                SetCell(row-(size/2)+i, column-(size/2)+j, sPanel.pGrid[sPanel.currentPattern].first[i][j]);
+                            }
+                        }
+                    }
+                }   
+            }
+
+
+        };
 
         if(paused)
         {

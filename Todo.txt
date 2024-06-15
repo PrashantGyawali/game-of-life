@@ -4,6 +4,8 @@ play/pause
 next generation
 clear world
 
+object insertion: glider, glider launcher etc...
+
 
 ui:
 Bottom:
@@ -12,11 +14,13 @@ reset world
 
 
 Fonts: Change fonts
+[+] New patten,
+
 
 Top:
 Current generation info
 Color selector, diagonal rainbow gradient 
 rules editor opener: congestion, birth
 
+
 Right:
-object insertion: [+] New patten, glider, glider launcher etc...

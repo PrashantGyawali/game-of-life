@@ -1,6 +1,7 @@
 #pragma once
 
 #include "grid.hpp"
+#include "sidepanel.hpp"
 
 class Simulation{
     private:
@@ -18,6 +19,9 @@ class Simulation{
     void NextGeneration();
 
     public:
+    int currentGeneration=0;
+
+    
     Simulation(int rows, int columns, int cellSize=20);
     bool paused=false;
     int count=0;
@@ -30,6 +34,8 @@ class Simulation{
     void Draw();
     void SetCell(int row, int column, int value);
     void Clear();
+    void zoomIn();
+    void zoomOut();
 
     // WIdth and height preferably constant and only cellSize changed
     void Set(int width, int height);
@@ -37,10 +43,10 @@ class Simulation{
 
 
     int  CountLiveNeighbors(int row, int col);
-
+    void ToggleCell(int row, int column, int val);
 
     // updating the simulation
-    void Update();
+    void Update(Sidepanel &sPanel);
     void SetFPS(int fps);
     void Next();
     void SkipGenerations(int generations);
@@ -53,9 +59,5 @@ class Simulation{
     void TogglePause();
 
     void SetPaused(bool paused);
-
-
-
-
 
 };

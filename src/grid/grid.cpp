@@ -171,3 +171,11 @@ int Grid::GetCellSize()
 {
     return cellSize;
 }
+
+void Grid::ToggleCell(int row, int column)
+{
+    if(IsWIthinBounds(row, column))
+    {
+            cells[row][column] = !cells[row][column];
+    }
+}

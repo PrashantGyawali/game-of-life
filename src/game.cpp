@@ -4,6 +4,7 @@
 #include "raygui.h"
 #include <string>
 #include "simulation.hpp"
+#include "grid.hpp"
 #include <iostream>
 #include "sidepanel.hpp"
 
@@ -12,7 +13,7 @@ class Game
     int screenWidth;
     int screenHeight;
     int targetFPS = 100;
-    int cellSize =20;
+    int cellSize = 20;
 
     // rows and columns of simulation must be in 600:1000 ratio for best results
     Simulation simulation{35, 50, cellSize};
@@ -22,17 +23,16 @@ class Game
     Color BackgroundColor={35, 35, 35, 255};
     Color CellColor={255, 255, 255, 255};
 
-
     const char *colorText = "Color";
     const char *skipGenText = "#208# Skip Gen";
-    const char *zoomInText = "#107# +";
-    const char *zoomOutText = "#107# -";
+    const char *zoomInText ="#106#" ;
+    const char *zoomOutText = "#103#";
     const char *playButton = "#131#";
     const char *ClearText = "#93#Clear";
     const char *NextText = "#134# Next";
     const char *panLeftSymbol = "#118#";
     const char *panRightText = "#119#";
-    
+
     bool skipGenEditMode = false;
     int skipGenValue = 10;
     int userFPS=10;
@@ -40,7 +40,7 @@ class Game
     bool Button006Pressed = false;
     bool Button007Pressed = false;
 
-    float uiYOffset=550;
+    float uiYOffset;
 
 
 public:
@@ -53,8 +53,6 @@ public:
 
     void Init()
     {
-
-
 
         // Temporary window that will get the monitor height and width and close itself
         // yeslai chuttai class banauna paryo pachi, ani mainmenu dekhaunu bhanda aghi run garnu paryo
@@ -89,8 +87,10 @@ public:
         {
             BeginDrawing();
             ClearBackground(BackgroundColor);
-            simulation.Update();
+            simulation.Update(sidePanel);
             simulation.Draw();
+
+            
 
             // GUI STUFF
 
@@ -102,8 +102,16 @@ public:
 
                 DrawRectangle(0, uiYOffset-2, 1000, 52, { 150, 150, 150, 255 });
 
-                GuiButton({5, uiYOffset, 48, 48 }, zoomInText);
-                GuiButton({53, uiYOffset, 48, 48 }, zoomOutText);
+                GuiSetIconScale(2); // Increase icon size
+                if(GuiButton({5, uiYOffset, 48, 48 }, zoomInText)){
+                    simulation.zoomIn();
+                };
+
+                if(GuiButton({53, uiYOffset, 48, 48 }, zoomOutText)){
+                    simulation.zoomOut();
+                };
+
+                GuiSetIconScale(1); // Increase icon size
 
                 GuiButton({ 101, uiYOffset, 48, 48 }, panLeftSymbol); 
                 GuiButton({ 149, uiYOffset, 48, 48 }, panRightText); 
@@ -112,10 +120,13 @@ public:
                 {
                     simulation.paused ? simulation.Clear() : void();
                 };
+
                 if(GuiButton({282, uiYOffset, 75, 48 }, NextText))
                 {
                     simulation.Next();
                 };
+
+                
 
                 GuiSetIconScale(2); // Increase icon size
                 GuiToggle({357, uiYOffset, 48, 48 }, playButton, &simulation.paused);
@@ -134,6 +145,7 @@ public:
                 {
                     simulation.SetFPS(userFPS);
                 };
+
                 if (GuiSpinner({670, uiYOffset, 100, 48 }, "", &userFPS, 1, 20, userFPSEdit)) {
                     userFPSEdit = !userFPSEdit;
                 };
@@ -149,7 +161,6 @@ public:
                 if(GuiButton({ 900, uiYOffset, 96, 48 }, "Random")) 
                 {
                     // fill random
-                    std::cout<<"hi123";
                 }; 
 
                 sidePanel.SetHeight();

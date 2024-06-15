@@ -34,6 +34,7 @@ class Grid{
         void SetCellSize(int cSize);
         int  GetCellSize();
         void UpdateFocus(int focusX, int focusY);
+        void ToggleCell(int row, int column);
         
         void Clear();
         void FillRandom();
