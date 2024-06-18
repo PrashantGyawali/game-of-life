@@ -7,6 +7,7 @@
 #include "grid.hpp"
 #include <iostream>
 #include "sidepanel.hpp"
+#include "toppanel.hpp"
 
 class Game
 {
@@ -19,27 +20,25 @@ class Game
     Simulation simulation{35, 50, cellSize};
 
     Sidepanel sidePanel=Sidepanel(200);
+    TopPanel topPanel;
 
     Color BackgroundColor={35, 35, 35, 255};
     Color CellColor={255, 255, 255, 255};
 
-    const char *colorText = "Color";
+
+    const char *colorText = "Colors";
     const char *skipGenText = "#208# Skip Gen";
     const char *zoomInText ="#106#" ;
     const char *zoomOutText = "#103#";
     const char *playButton = "#131#";
     const char *ClearText = "#93#Clear";
     const char *NextText = "#134# Next";
-    const char *panLeftSymbol = "#118#";
-    const char *panRightText = "#119#";
-
+    
     bool skipGenEditMode = false;
     int skipGenValue = 10;
     int userFPS=10;
     bool userFPSEdit = false;
-    bool Button006Pressed = false;
-    bool Button007Pressed = false;
-
+    bool rainbowMode = false;
     float uiYOffset;
 
 
@@ -48,11 +47,12 @@ public:
     {
         this->screenWidth = screenW;
         this->screenHeight = screenH;
-        // Initialize simulation height and width
     }
 
     void Init()
     {
+
+
 
         // Temporary window that will get the monitor height and width and close itself
         // yeslai chuttai class banauna paryo pachi, ani mainmenu dekhaunu bhanda aghi run garnu paryo
@@ -75,7 +75,8 @@ public:
 
         // 200 bhaneko sidepanel ko width ho
         // 50 bhaneko bottom panel ko height ho
-        simulation.Set(screenWidth-200,monitorHeight-50);
+        simulation.Set(screenWidth-200,monitorHeight-100);
+        topPanel=TopPanel{screenWidth-200,50};
         uiYOffset=monitorHeight-48;
     }
 
@@ -88,7 +89,10 @@ public:
             BeginDrawing();
             ClearBackground(BackgroundColor);
             simulation.Update(sidePanel);
-            simulation.Draw();
+            simulation.Draw(sidePanel);
+
+
+            topPanel.Update();
 
             
 
@@ -102,7 +106,10 @@ public:
 
                 DrawRectangle(0, uiYOffset-2, 1000, 52, { 150, 150, 150, 255 });
 
-                GuiSetIconScale(2); // Increase icon size
+
+
+
+                GuiSetIconScale(2);
                 if(GuiButton({5, uiYOffset, 48, 48 }, zoomInText)){
                     simulation.zoomIn();
                 };
@@ -110,62 +117,69 @@ public:
                 if(GuiButton({53, uiYOffset, 48, 48 }, zoomOutText)){
                     simulation.zoomOut();
                 };
+                GuiSetIconScale(1);
 
-                GuiSetIconScale(1); // Increase icon size
 
-                GuiButton({ 101, uiYOffset, 48, 48 }, panLeftSymbol); 
-                GuiButton({ 149, uiYOffset, 48, 48 }, panRightText); 
 
-                if(GuiButton({197, uiYOffset, 85, 48 }, ClearText)) 
+
+
+                if(GuiButton({101, uiYOffset, 85, 48 }, ClearText)) 
                 {
                     simulation.paused ? simulation.Clear() : void();
                 };
+                //boxed for user set FPS value
+                if(GuiButton({186, uiYOffset, 50, 48 }, "FPS"))
+                {
+                    simulation.SetFPS(userFPS);
+                };
 
-                if(GuiButton({282, uiYOffset, 75, 48 }, NextText))
+                if (GuiSpinner({236, uiYOffset, 100, 48 }, "", &userFPS, 1, 20, userFPSEdit)) {
+                    userFPSEdit = !userFPSEdit;
+                };
+
+                if(GuiButton({336, uiYOffset, 75, 48 }, NextText))
                 {
                     simulation.Next();
                 };
 
                 
 
-                GuiSetIconScale(2); // Increase icon size
-                GuiToggle({357, uiYOffset, 48, 48 }, playButton, &simulation.paused);
-                GuiSetIconScale(1); // Reset icon size so that it doesn't affect other icons
+                GuiSetIconScale(2);
+                GuiToggle({411, uiYOffset, 48, 48 }, playButton, &simulation.paused);
+                GuiSetIconScale(1);
 
-                if(GuiButton({405, uiYOffset, 115, 48 }, skipGenText))
+
+
+                if(GuiButton({459, uiYOffset, 115, 48 }, skipGenText))
                 {
                     simulation.SkipGenerations(skipGenValue);
                 };
-                if (GuiSpinner({520, uiYOffset, 100, 48 }, "", &skipGenValue, 0, 100, skipGenEditMode)) {
+                if (GuiSpinner({574, uiYOffset, 100, 48 }, "", &skipGenValue, 0, 100, skipGenEditMode)) {
                     skipGenEditMode = !skipGenEditMode;
                 };
 
-                //boxed for user set FPS value
-                if(GuiButton({620, uiYOffset, 50, 48 }, "FPS"))
-                {
-                    simulation.SetFPS(userFPS);
-                };
 
-                if (GuiSpinner({670, uiYOffset, 100, 48 }, "", &userFPS, 1, 20, userFPSEdit)) {
-                    userFPSEdit = !userFPSEdit;
-                };
+
+
+
                 
-                // If button clicked, enable the gradient mode for cool visual effects
-                //Button006Pressed = GuiButton({695, uiYOffset, 50, 48 }, colorText);
-                //people have eyes to see color picker, no need to place "color" text, we already have less space for buttons
+                if(GuiButton({676, uiYOffset, 70, 48 }, colorText)){
+                    rainbowMode = !rainbowMode;
+                };
 
-                GuiColorPicker({780, uiYOffset+2, 46, 46 }, "", &BackgroundColor); 
+                GuiColorPicker({750, uiYOffset+2, 46, 46 }, "", &BackgroundColor); 
                 GuiColorPicker({830, uiYOffset+2, 46, 46 }, "", &CellColor); 
 
-                // Arrange space for this button
-                if(GuiButton({ 900, uiYOffset, 96, 48 }, "Random")) 
+
+
+
+                if(GuiButton({ 900, uiYOffset, 96, 48 }, "Random")&& simulation.paused) 
                 {
-                    // fill random
+                    simulation.FillRandom();
                 }; 
 
                 sidePanel.SetHeight();
                 sidePanel.Draw();
-
 
 
             }

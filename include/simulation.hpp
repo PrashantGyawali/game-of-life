@@ -6,8 +6,9 @@
 class Simulation{
     private:
     int columns=20,rows=20;
+    long long int currentGeneration=0;
     Grid grid,nexGrid;
-    
+    int initialOffSetY=50;
     int focusOffsetX=0,focusOffsetY=0;
     int width,height;
 
@@ -19,9 +20,7 @@ class Simulation{
     void NextGeneration();
 
     public:
-    int currentGeneration=0;
-
-    
+    long long int GetCurrentGeneration();
     Simulation(int rows, int columns, int cellSize=20);
     bool paused=false;
     int count=0;
@@ -31,7 +30,7 @@ class Simulation{
 
     };
 
-    void Draw();
+    void Draw(Sidepanel &sPanel);
     void SetCell(int row, int column, int value);
     void Clear();
     void zoomIn();
@@ -43,7 +42,7 @@ class Simulation{
 
 
     int  CountLiveNeighbors(int row, int col);
-    void ToggleCell(int row, int column, int val);
+    void ControlPattern(int row, int column, int val, bool togglePattern);
 
     // updating the simulation
     void Update(Sidepanel &sPanel);
@@ -60,4 +59,5 @@ class Simulation{
 
     void SetPaused(bool paused);
 
+    void FillRandom();
 };

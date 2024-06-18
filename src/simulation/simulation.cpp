@@ -3,10 +3,10 @@
 #include<utility>
 #include<iostream>
 #include "raylib.h"
-void Simulation::Draw()
+void Simulation::Draw(Sidepanel &sPanel)
 {
     grid.UpdateFocus(focusOffsetX,focusOffsetY);
-    grid.Draw();
+    grid.Draw(sPanel, paused);
 }
 
 
@@ -17,7 +17,10 @@ void Simulation::SetCell(int x, int y, int value)
     grid.SetCell(x, y, value);
 }
 
-
+long long int Simulation::GetCurrentGeneration()
+{
+    return currentGeneration;
+}
 
 
 
@@ -30,14 +33,21 @@ void Simulation::Set(int width, int height)
     int cellHeight=(height/rows);
 
     int cellSize=std::min(cellWidth, cellHeight);
-    //std::cout<<columns<<" hi "<<rows<<std::endl;
 
     grid.Set(rows, columns);
+    nexGrid.Set(rows, columns);
+
+    nexGrid.height=height;
+    grid.height=height;
     
     SetCellSize(cellSize);
     grid.FillRandom();
 }
 
+void Simulation::FillRandom()
+{
+    grid.FillRandom();
+}
 
 
 int Simulation::CountLiveNeighbors(int row, int col)
@@ -71,6 +81,8 @@ void Simulation::NextGeneration()
 {
     int rows = grid.GetRows();
     int columns = grid.GetColumns();
+    Color color = GRAY;
+
     for(int r=0;r<rows;r++)
     {
         for(int c=0;c<columns;c++)
@@ -100,8 +112,8 @@ void Simulation::NextGeneration()
             }
         }
     }
-    currentGeneration++;
     grid=nexGrid;
+    currentGeneration++;
 }
 
 
@@ -128,11 +140,11 @@ void Simulation::zoomOut()
     }
 }
 
-void Simulation::ToggleCell(int row, int column, int val)
+void Simulation::ControlPattern(int row, int column, int val, bool togglePattern)
 {
     if(paused)
     {
-        grid.ToggleCell(row, column);
+        grid.ControlPattern(row, column, val, togglePattern);
     }
 }
 
@@ -189,40 +201,24 @@ void Simulation::Update(Sidepanel &sPanel)
         }
 
 
-        if(IsMouseButtonPressed(MOUSE_LEFT_BUTTON))
-        {
+        if(IsMouseButtonPressed(MOUSE_LEFT_BUTTON) && CheckCollisionPointRec(GetMousePosition(), {0, initialOffSetY*1.0f, width*1.0f, height*1.0f}) && paused)
+        {  
             Vector2 mousePosition = GetMousePosition();
-            int row = (mousePosition.y + focusOffsetY) / grid.GetCellSize();
+            int row = (mousePosition.y + focusOffsetY-initialOffSetY) / grid.GetCellSize();
             int column = (mousePosition.x + focusOffsetX) / grid.GetCellSize();
 
-            if(row>=rows || column>=columns)
-            {
+            if(row >= rows || column >= columns) {
                 return;
             }
+                int size = sPanel.pGrid[sPanel.currentPattern].first.size();
 
-            int size = sPanel.pGrid[sPanel.currentPattern].first.size();
-
-
-            if(paused)
-            {
                 for (int i = 0; i < size; i++) {
                     for (int j = 0; j < sPanel.pGrid[sPanel.currentPattern].first[i].size(); j++) {
-                        if(sPanel.pGrid[sPanel.currentPattern].first[i][j])
-                        {
-                            if(sPanel.togglePattern)
-                            {
-                                ToggleCell(row-(size/2)+i, column-(size/2)+j, sPanel.pGrid[sPanel.currentPattern].first[i][j]);
-                            }
-                            else{
-                                SetCell(row-(size/2)+i, column-(size/2)+j, sPanel.pGrid[sPanel.currentPattern].first[i][j]);
-                            }
-                        }
+                        ControlPattern(row-(size/2)+i, column-(size/2)+j, sPanel.pGrid[sPanel.currentPattern].first[i][j], sPanel.togglePattern); 
                     }
-                }   
-            }
-
-
+                }
         };
+
 
         if(paused)
         {
@@ -317,14 +313,10 @@ void Simulation::SetRules(int op, int up)
 
 
 
-Simulation::Simulation(int rows, int columns, int cellSize)
+Simulation::Simulation(int rows, int columns, int cellSize):grid(rows,columns,50),nexGrid(rows,columns,50)
     {
         this->rows=rows;
         this->columns=columns;
-
-
-        grid.Set(rows,columns);
-        nexGrid.Set(rows,columns);
 
         grid.SetCellSize(cellSize);
         nexGrid.SetCellSize(cellSize);
